@@ -1,0 +1,9 @@
+/opsx:apply
+
+---
+
+I just plugged in a physical device
+
+---
+
+Make the commit in two commits. I also saw the room persist with my message after a restart.
