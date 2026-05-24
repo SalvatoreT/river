@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "b02ba51211c7",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "AGENTS.md",
+    "openspec/changes/android-bundled-node/tasks.md",
+    "ui/src/components/app/freenet_api/connection_manager.rs",
+    "ui/src/node_runtime.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b0/2ba51211c7/0/metadata.json",
+      "transcript": "/b0/2ba51211c7/0/full.jsonl",
+      "content_hash": "/b0/2ba51211c7/0/content_hash.txt",
+      "prompt": "/b0/2ba51211c7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 860,
+    "cache_creation_tokens": 313658,
+    "cache_read_tokens": 21369215,
+    "output_tokens": 74736,
+    "api_call_count": 112
+  }
+}

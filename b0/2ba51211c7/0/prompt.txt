@@ -1,0 +1,5 @@
+/opsx:apply
+
+---
+
+I just plugged in a physical device
