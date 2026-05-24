@@ -1,0 +1,13 @@
+/opsx:apply android-bundled-node
+
+---
+
+> 7.2 cargo make publish-river blocked on macOS by two issues: sign-webapp targets x86_64-unknown-linux-gnu (cross-compile setup needed), and cargo install freenet --version 0.2.61 fails on an upstream include_str! path bug.
+
+What changes should I do here to freenet? I can do this in parallel while you do this:
+
+> Pre-register a synthetic auth_token at app startup via `serve_client_api_with_listener_and_contracts` (which returns `OriginContractMap`); UI uses that token
+
+---
+
+Tell me what instructions to give to a Claude Code session in that crate and i'll make a PR to make the change. Make sure it includes context for what's broken.

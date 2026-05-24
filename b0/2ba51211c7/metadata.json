@@ -3,7 +3,7 @@
   "checkpoint_id": "b02ba51211c7",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 4,
   "files_touched": [
     "AGENTS.md",
     "openspec/changes/android-bundled-node/tasks.md",
@@ -16,13 +16,19 @@
       "transcript": "/b0/2ba51211c7/0/full.jsonl",
       "content_hash": "/b0/2ba51211c7/0/content_hash.txt",
       "prompt": "/b0/2ba51211c7/0/prompt.txt"
+    },
+    {
+      "metadata": "/b0/2ba51211c7/1/metadata.json",
+      "transcript": "/b0/2ba51211c7/1/full.jsonl",
+      "content_hash": "/b0/2ba51211c7/1/content_hash.txt",
+      "prompt": "/b0/2ba51211c7/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 860,
-    "cache_creation_tokens": 313658,
-    "cache_read_tokens": 21369215,
-    "output_tokens": 74736,
-    "api_call_count": 112
+    "input_tokens": 9208,
+    "cache_creation_tokens": 574215,
+    "cache_read_tokens": 24991319,
+    "output_tokens": 107058,
+    "api_call_count": 145
   }
 }
