@@ -1,0 +1,7 @@
+<task-notification>
+<task-id>bqieq6hr8</task-id>
+<tool-use-id>toolu_01CVCsNB4DugdZoZu3vifsfh</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/bqieq6hr8.output</output-file>
+<status>completed</status>
+<summary>Background command "Build APK with clipboard fix" completed (exit code 0)</summary>
+</task-notification>
