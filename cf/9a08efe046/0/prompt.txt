@@ -1,0 +1,37 @@
+<task-notification>
+<task-id>bl11vpgbc</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/bl11vpgbc.output</output-file>
+<status>completed</status>
+<summary>Background command "Build APK with rename + dark-mode meta" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bn0s3p121</task-id>
+<tool-use-id>toolu_01Ncx3NWC5Yu2FhRymNDsoyb</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/bn0s3p121.output</output-file>
+<status>completed</status>
+<summary>Background command "Build APK with dark-mode activity hook" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bulw9upue</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/bulw9upue.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild with logging + WebView debugging enabled" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>beqrsobkc</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/beqrsobkc.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild with .webp icons (no duplicates now)" completed (exit code 0)</summary>
+</task-notification>

@@ -1,0 +1,78 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "cf9a08efe046",
+  "session_id": "f1ed4c28-b6ce-4c57-a7e2-034b7f415590",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-25T21:20:51.022856Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "ui/android/kotlin/dev/dioxus/main/MainActivity.kt",
+    "ui/android/res/values/strings.xml",
+    "ui/src/components/app.rs"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d401a350fa44",
+  "checkpoint_transcript_start": 801,
+  "transcript_lines_at_start": 801,
+  "token_usage": {
+    "input_tokens": 871,
+    "cache_creation_tokens": 160418,
+    "cache_read_tokens": 35782945,
+    "output_tokens": 82098,
+    "api_call_count": 103
+  },
+  "session_metrics": {
+    "turn_count": 9
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 10,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1385,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 10
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 10,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1404,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 10
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 10,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1436,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 10
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 10,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1418,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 10
+      }
+    }
+  ]
+}
