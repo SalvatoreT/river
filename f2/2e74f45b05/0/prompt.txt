@@ -1,0 +1,19 @@
+Continue with River on Android /opsx:apply
+
+---
+
+> (b) do the publish from a Linux env
+
+Let's do this one
+
+---
+
+Do live-device verification first.
+
+---
+
+When I tried to export my ID from a room, the "Copy" button didn't work.
+
+---
+
+I tapped the copy button and nothing was copied

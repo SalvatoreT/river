@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "f22e74f45b05",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "openspec/changes/android-bundled-node/tasks.md",
+    "ui/src/components/direct_messages/dm_thread_modal.rs",
+    "ui/src/components/members/member_info_modal.rs",
+    "ui/src/components/members/member_info_modal/nickname_field.rs",
+    "ui/src/components/room_list/edit_room_modal.rs",
+    "ui/src/components/room_list/room_name_field.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f2/2e74f45b05/0/metadata.json",
+      "transcript": "/f2/2e74f45b05/0/full.jsonl",
+      "content_hash": "/f2/2e74f45b05/0/content_hash.txt",
+      "prompt": "/f2/2e74f45b05/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 441,
+    "cache_creation_tokens": 357271,
+    "cache_read_tokens": 18863673,
+    "output_tokens": 97557,
+    "api_call_count": 126
+  }
+}
