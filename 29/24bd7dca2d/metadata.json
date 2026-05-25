@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "2924bd7dca2d",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "scripts/apply-android-overlay.sh",
+    "ui/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+    "ui/android/res/mipmap-hdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-hdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-hdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.webp"
+  ],
+  "sessions": [
+    {
+      "metadata": "/29/24bd7dca2d/0/metadata.json",
+      "transcript": "/29/24bd7dca2d/0/full.jsonl",
+      "content_hash": "/29/24bd7dca2d/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1,
+    "cache_creation_tokens": 1340,
+    "cache_read_tokens": 435853,
+    "output_tokens": 1307,
+    "api_call_count": 1
+  }
+}

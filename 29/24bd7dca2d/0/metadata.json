@@ -1,0 +1,55 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "2924bd7dca2d",
+  "session_id": "f1ed4c28-b6ce-4c57-a7e2-034b7f415590",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-25T21:21:25.183831Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "scripts/apply-android-overlay.sh",
+    "ui/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+    "ui/android/res/mipmap-hdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-hdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-hdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-mdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xhdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher_adaptive_back.webp",
+    "ui/android/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.webp"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d401a350fa44",
+  "checkpoint_transcript_start": 1276,
+  "transcript_lines_at_start": 1276,
+  "token_usage": {
+    "input_tokens": 1,
+    "cache_creation_tokens": 1340,
+    "cache_read_tokens": 435853,
+    "output_tokens": 1307,
+    "api_call_count": 1
+  },
+  "session_metrics": {
+    "turn_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-25T21:21:25.090723Z",
+    "agent_lines": 30,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 30,
+    "total_lines_changed": 31,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
