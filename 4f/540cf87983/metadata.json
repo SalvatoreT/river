@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "4f540cf87983",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "ui/src/components/app/freenet_api/connection_manager.rs",
+    "ui/src/components/app/freenet_api/freenet_synchronizer.rs",
+    "ui/src/components/app/freenet_api/response_handler.rs",
+    "ui/src/components/invite_click_interceptor.rs",
+    "ui/src/components/members.rs",
+    "ui/src/components/room_list/receive_invitation_modal.rs",
+    "ui/src/example_data.rs",
+    "ui/src/node_runtime.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4f/540cf87983/0/metadata.json",
+      "transcript": "/4f/540cf87983/0/full.jsonl",
+      "content_hash": "/4f/540cf87983/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 11315,
+    "cache_read_tokens": 1690369,
+    "output_tokens": 4615,
+    "api_call_count": 8
+  }
+}

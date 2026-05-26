@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "4f540cf87983",
+  "session_id": "a8b89921-94cd-4b9a-8e27-bc332207613f",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-26T15:25:09.915184Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "ui/src/components/app/freenet_api/connection_manager.rs",
+    "ui/src/components/app/freenet_api/freenet_synchronizer.rs",
+    "ui/src/components/app/freenet_api/response_handler.rs",
+    "ui/src/components/invite_click_interceptor.rs",
+    "ui/src/components/members.rs",
+    "ui/src/components/room_list/receive_invitation_modal.rs",
+    "ui/src/example_data.rs",
+    "ui/src/node_runtime.rs"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "fd6cb1122b97",
+  "checkpoint_transcript_start": 238,
+  "transcript_lines_at_start": 238,
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 11315,
+    "cache_read_tokens": 1690369,
+    "output_tokens": 4615,
+    "api_call_count": 8
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-26T15:25:09.900718Z",
+    "agent_lines": 25,
+    "agent_removed": 41,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 25,
+    "total_lines_changed": 66,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
