@@ -1,0 +1,13 @@
+Looks like my old messages are still there!
+
+---
+
+River just crashed
+
+---
+
+When I import my ID and then close and reopen the app, the room that I have setup is gone. Reimporting brings it back. I just did this on both release and debug builds.
+
+---
+
+works on the release but not the debug build. also something just crashed.
