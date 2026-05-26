@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "bd904deb4f94",
+  "session_id": "a8b89921-94cd-4b9a-8e27-bc332207613f",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-26T15:27:15.020224Z",
+  "branch": "android-bundled-node",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "openspec/changes/android-bundled-node/tasks.md"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "fd6cb1122b97",
+  "checkpoint_transcript_start": 267,
+  "transcript_lines_at_start": 267,
+  "token_usage": {
+    "input_tokens": 5,
+    "cache_creation_tokens": 5290,
+    "cache_read_tokens": 1094574,
+    "output_tokens": 4511,
+    "api_call_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-26T15:27:15.005926Z",
+    "agent_lines": 15,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 15,
+    "total_lines_changed": 16,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}

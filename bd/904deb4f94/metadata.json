@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "bd904deb4f94",
+  "strategy": "manual-commit",
+  "branch": "android-bundled-node",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "openspec/changes/android-bundled-node/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/bd/904deb4f94/0/metadata.json",
+      "transcript": "/bd/904deb4f94/0/full.jsonl",
+      "content_hash": "/bd/904deb4f94/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 5,
+    "cache_creation_tokens": 5290,
+    "cache_read_tokens": 1094574,
+    "output_tokens": 4511,
+    "api_call_count": 5
+  }
+}
