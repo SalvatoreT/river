@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "983cd62cbd51",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 11,
+  "files_touched": [
+    "Makefile.toml",
+    "scripts/apply-android-overlay.sh",
+    "ui/src/components/app/chat_delegate.rs",
+    "ui/src/components/room_list/receive_invitation_modal.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/98/3cd62cbd51/0/metadata.json",
+      "transcript": "/98/3cd62cbd51/0/full.jsonl",
+      "content_hash": "/98/3cd62cbd51/0/content_hash.txt",
+      "prompt": "/98/3cd62cbd51/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 196,
+    "cache_creation_tokens": 1175945,
+    "cache_read_tokens": 62491460,
+    "output_tokens": 117938,
+    "api_call_count": 117
+  }
+}

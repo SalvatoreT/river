@@ -1,0 +1,47 @@
+Fix #26
+
+---
+
+Can you support debug and release builds without any upstream code changes?
+
+---
+
+Please load the updated app on my phone that's now plugged in
+
+---
+
+Can the River debug build makes "River Debug" name app and "River" is the production one without seeding examples. Their icons should have different color backgrounds. I think they'll need different app IDs to be different apps.
+
+---
+
+I have both apps open and I can't join the room on the debug build
+
+---
+
+I'm turn off the Wi-Fi on my phone and try again with the debug app.
+
+---
+
+<task-notification>
+<task-id>bhtyyyaux</task-id>
+<tool-use-id>toolu_01Wpd1ULqBfKzrUR7xWwrtyU</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/f1ed4c28-b6ce-4c57-a7e2-034b7f415590/tasks/bhtyyyaux.output</output-file>
+<status>failed</status>
+<summary>Monitor "Watch for peer connection or join completion on River Debug" script failed (exit 1)</summary>
+</task-notification>
+
+---
+
+done. it's stuck
+
+---
+
+I was on the same Wi-Fi earlier and I use AT&T
+
+---
+
+Actually, maybe I just downloaded from the chat and then wasn't able to send.
+
+---
+
+Can you make the loading bar more actually reflect the progress of subscribing a room?
