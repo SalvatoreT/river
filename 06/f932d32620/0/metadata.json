@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "06f932d32620",
+  "session_id": "f1ed4c28-b6ce-4c57-a7e2-034b7f415590",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-26T04:00:59.468846Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "ui/src/components/room_list/receive_invitation_modal.rs"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "7a16a3fe88e3",
+  "checkpoint_transcript_start": 1871,
+  "transcript_lines_at_start": 1871,
+  "token_usage": {
+    "input_tokens": 1,
+    "cache_creation_tokens": 1525,
+    "cache_read_tokens": 688332,
+    "output_tokens": 965,
+    "api_call_count": 1
+  },
+  "session_metrics": {
+    "turn_count": 22
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-26T04:00:59.272368Z",
+    "agent_lines": 94,
+    "agent_removed": 18,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 94,
+    "total_lines_changed": 112,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
