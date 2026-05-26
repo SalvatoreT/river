@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "0ea61d82f4f8",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "ui/src/components/app/chat_delegate.rs",
+    "ui/src/components/members.rs",
+    "ui/src/example_data.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0e/a61d82f4f8/0/metadata.json",
+      "transcript": "/0e/a61d82f4f8/0/full.jsonl",
+      "content_hash": "/0e/a61d82f4f8/0/content_hash.txt",
+      "prompt": "/0e/a61d82f4f8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 63,
+    "cache_creation_tokens": 276160,
+    "cache_read_tokens": 7126545,
+    "output_tokens": 48919,
+    "api_call_count": 49
+  }
+}

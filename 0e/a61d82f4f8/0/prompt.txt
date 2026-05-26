@@ -1,0 +1,1 @@
+Load the updated debug and production builds onto my phone (plugged in) and then continue /opsx:apply. Fix the Android notifications so I know when there are new messages.
