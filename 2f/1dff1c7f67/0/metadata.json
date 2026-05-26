@@ -1,0 +1,72 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "2f1dff1c7f67",
+  "session_id": "f1ed4c28-b6ce-4c57-a7e2-034b7f415590",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-26T04:15:05.914236Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "scripts/vendor-freenet.sh",
+    "ui/Cargo.toml"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "696306a41493",
+  "checkpoint_transcript_start": 1881,
+  "transcript_lines_at_start": 1881,
+  "token_usage": {
+    "input_tokens": 42,
+    "cache_creation_tokens": 39100,
+    "cache_read_tokens": 22746467,
+    "output_tokens": 22421,
+    "api_call_count": 32
+  },
+  "session_metrics": {
+    "turn_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-26T04:15:05.714923Z",
+    "agent_lines": 20,
+    "agent_removed": 8,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 20,
+    "total_lines_changed": 28,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 1373,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/agents/entire-search.md": 25,
+        ".claude/commands/opsx/apply.md": 152,
+        ".claude/commands/opsx/archive.md": 157,
+        ".claude/commands/opsx/explore.md": 173,
+        ".claude/commands/opsx/propose.md": 106,
+        ".claude/settings.json": 82,
+        ".claude/settings.local.json": 10,
+        ".claude/skills/openspec-apply-change/SKILL.md": 156,
+        ".claude/skills/openspec-archive-change/SKILL.md": 114,
+        ".claude/skills/openspec-explore/SKILL.md": 288,
+        ".claude/skills/openspec-propose/SKILL.md": 110
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 10,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1383,
+      "agent_lines_removed": 8,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 10
+      }
+    }
+  ]
+}
