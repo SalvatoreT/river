@@ -1,0 +1,102 @@
+Install both debug and production builds of River on this new phone plugged in. Try using maestro to click around the screen and webviews.
+
+---
+
+Use asdf to set the Java version
+
+---
+
+asdf current shows that JDK 25 is available.
+
+---
+
+❯ echo $JAVA_HOME
+/Users/sal/.asdf/installs/java/openjdk-25
+
+---
+
+/opsx:apply
+
+---
+
+Rebase origin/main. Then install the android and debug versions and launch them on the Android phone I have plugged in. Then use maestro to demonstrate clicking around the WebView. Once you're done with that, add a Skill.
+
+---
+
+try again for 1Password
+
+---
+
+try again
+
+---
+
+<task-notification>
+<task-id>bdll81hiy</task-id>
+<tool-use-id>toolu_01QEe4kKrJ1E9eN3EpuGmRrj</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/4f67ef6d-ea74-4c70-b6ed-55a002778901/tasks/bdll81hiy.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild production APK from rebased tree (background)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Save instructions on how to test an android device to a Skill that gets loaded whenever I ask you to use the app.
+When you're done setting those up, make a quick recording of you clicking around the app so I can share it externally (don't commit the video obviously).
+Also open http://127.0.0.1:7509 in the browser and take a screenshot of that.
+
+---
+
+I meant to open that URL on the Android device!
+
+---
+
+Instead of making a video, just share a bunch of screenshots. Before you do that, also update the freenet version to 0.2.67
+
+---
+
+I want to open a GitHub issue with River to say that I want to make an Android app. What kind of major changes did we need to make to River to make this possible?
+
+---
+
+<task-notification>
+<task-id>b9jqh4pbe</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/4f67ef6d-ea74-4c70-b6ed-55a002778901/tasks/b9jqh4pbe.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild production APK against freenet 0.2.67 (background)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Yes please copy them to that folder.
+
+---
+
+Open the Issue as a draft but only include the 5 most important things and run your copy through the /humanizer skill.
+
+---
+
+How can I update the images so they're smaller in the GitHub issue block. I already uploaded them and they're huge.
+
+---
+
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/4387620e-7e74-4193-8b90-e99faaa08c1b" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/e4cc82f3-09a8-4709-b4d9-e6528cf358f7" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/299715ff-fc84-4bd2-82dc-2f39b55c0cb3" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/2ddec1dd-f601-4ad0-a4a8-9b3a42e54cf5" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/e2a19b64-70ea-47ff-bb9a-b833a8c70029" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/45b59d86-5fa2-41eb-9f29-7ceaeface9e1" />
+<img width="1440" height="3120" alt="Image" src="https://github.com/user-attachments/assets/6d7ff79f-5cd3-4f7f-8832-b32185992db3" />
+
+---
+
+Don't shrink them, just update the tags for me and make the alts meaningful. I uploaded them in order.
+
+---
+
+look again
+
+---
+
+apply it

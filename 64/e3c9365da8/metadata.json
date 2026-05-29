@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "64e3c9365da8",
+  "strategy": "manual-commit",
+  "branch": "android-bundled-node",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "Cargo.toml",
+    "scripts/vendor-freenet.sh",
+    "ui/Cargo.toml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/64/e3c9365da8/0/metadata.json",
+      "transcript": "/64/e3c9365da8/0/full.jsonl",
+      "content_hash": "/64/e3c9365da8/0/content_hash.txt",
+      "prompt": "/64/e3c9365da8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 37222,
+    "cache_creation_tokens": 954067,
+    "cache_read_tokens": 24178965,
+    "output_tokens": 114563,
+    "api_call_count": 149
+  }
+}
