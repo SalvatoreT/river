@@ -359,6 +359,15 @@ pub fn App() -> Element {
         crate::components::app::chat_delegate::prune_outbound_dms_for_purges();
     });
 
+    // Bug B (background notifications): publish each room's notification
+    // context (decrypted name, local member id, read-watermark) to the
+    // node-side watcher whenever ROOMS changes, so it can notify while the
+    // WebView UI is suspended in the background. No-op off Android.
+    use_effect(|| {
+        let _rooms_marker = ROOMS.try_read().map(|r| r.map.len()).unwrap_or(0);
+        crate::components::app::notifications::publish_notif_contexts();
+    });
+
     #[cfg(not(feature = "no-sync"))]
     {
         // The synchronizer is now started in the auth token effect

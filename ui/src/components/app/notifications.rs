@@ -294,6 +294,67 @@ pub fn show_notification(
     }
 }
 
+/// Publish each room's notification context (Bug B) to the always-alive
+/// node-side watcher: the decrypted display name, the local member id, and
+/// a read-watermark (max message timestamp the UI has processed). Called
+/// from an `App()` `use_effect` on every ROOMS change. The watcher uses
+/// this to post notifications while the WebView UI is suspended in the
+/// background — where `notify_new_messages` never runs. No-op off Android.
+///
+/// See `openspec/changes/android-bundled-node/design-background-notifications.md`.
+#[cfg(target_os = "android")]
+pub fn publish_notif_contexts() {
+    let Ok(rooms) = ROOMS.try_read() else {
+        return;
+    };
+    for (owner_vk, room_data) in rooms.map.iter() {
+        let self_id = MemberId::from(&room_data.self_sk.verifying_key());
+        let secrets = room_data.secrets.clone();
+        let sealed = &room_data
+            .room_state
+            .configuration
+            .configuration
+            .display
+            .name;
+        let room_name = match unseal_bytes_with_secrets(sealed, &secrets) {
+            Ok(bytes) => String::from_utf8_lossy(&bytes).to_string(),
+            Err(_) => sealed.to_string_lossy(),
+        };
+        // Decrypt member nicknames so the watcher can name the sender
+        // (Phase 2). Mirrors the sender-name resolution in
+        // `notify_new_messages`.
+        let mut nicknames = std::collections::HashMap::new();
+        for ami in room_data.room_state.member_info.member_info.iter() {
+            let nick =
+                match unseal_bytes_with_secrets(&ami.member_info.preferred_nickname, &secrets) {
+                    Ok(b) => String::from_utf8_lossy(&b).to_string(),
+                    Err(_) => ami.member_info.preferred_nickname.to_string_lossy(),
+                };
+            nicknames.insert(ami.member_info.member_id, nick);
+        }
+        let baseline_ms = room_data
+            .room_state
+            .recent_messages
+            .messages
+            .iter()
+            .filter_map(|m| m.message.time.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_millis() as u64)
+            .max()
+            .unwrap_or(0);
+        crate::node_runtime::update_notif_context(
+            *owner_vk,
+            self_id,
+            room_name,
+            secrets,
+            nicknames,
+            baseline_ms,
+        );
+    }
+}
+
+#[cfg(not(target_os = "android"))]
+pub fn publish_notif_contexts() {}
+
 #[cfg(target_arch = "wasm32")]
 fn create_notification_internal(
     room_key: VerifyingKey,
@@ -434,6 +495,28 @@ pub fn notify_new_messages(
         return;
     }
 
+    // Bug B Phase 2 — coordinate with the background watcher so we don't
+    // double-notify on the foreground transition. If the watcher already
+    // surfaced these messages while the app was backgrounded, its
+    // read-watermark is >= their max timestamp; skip the UI notification.
+    // Otherwise claim them by advancing the watermark so the watcher won't
+    // re-post them. No-op off Android (no watcher).
+    #[cfg(target_os = "android")]
+    {
+        let max_ts = external_messages
+            .iter()
+            .filter_map(|m| m.message.time.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_millis() as u64)
+            .max()
+            .unwrap_or(0);
+        let watermark = crate::node_runtime::notif_watermark(room_key);
+        if max_ts <= watermark {
+            info!("New messages already surfaced by background watcher; skipping UI notification");
+            return;
+        }
+        crate::node_runtime::notif_mark_notified(room_key, max_ts);
+    }
+
     // Get room name (decrypt if private)
     let room_name = ROOMS
         .read()
@@ -481,8 +564,12 @@ pub fn notify_new_messages(
     show_notification(*room_key, &room_name, &sender_name, &preview);
 }
 
-/// Extract a preview from message content, decrypting if necessary
-fn get_message_preview(
+/// Extract a preview from message content, decrypting if necessary.
+///
+/// `pub(crate)` so the Android background notification watcher
+/// (`node_runtime`) can reuse the exact same preview decoder when posting
+/// while the UI is suspended (Bug B Phase 2).
+pub(crate) fn get_message_preview(
     content: &RoomMessageBody,
     room_secrets: &std::collections::HashMap<u32, [u8; 32]>,
 ) -> String {

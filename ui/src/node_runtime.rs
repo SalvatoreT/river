@@ -89,6 +89,130 @@ pub fn android_is_foreground() -> bool {
 /// exactly once per process and the token is immutable thereafter.
 pub static EMBEDDED_AUTH_TOKEN: OnceLock<String> = OnceLock::new();
 
+/// Per-room snapshot the background notification watcher needs to turn an
+/// incoming room-state update into a notification WITHOUT the Dioxus UI
+/// being alive.
+///
+/// Bug B (see `openspec/changes/android-bundled-node/design-background-notifications.md`):
+/// the normal notify path (`room_synchronizer` → `notify_new_messages` →
+/// `post_message_notification`) runs in the WebView UI, which Android
+/// suspends in the background — exactly when notifications matter. The
+/// embedded node keeps receiving state on its own runtime, so a watcher
+/// running there can post notifications even while the UI is frozen. The
+/// only thing the watcher lacks is River-level context (which member is
+/// "me", the decrypted room name, and how far the user has already read),
+/// so the UI publishes that here whenever it has live `RoomData`.
+#[derive(Clone)]
+pub struct RoomNotifContext {
+    pub owner_vk: ed25519_dalek::VerifyingKey,
+    pub self_member_id: river_core::room_state::member::MemberId,
+    /// Decrypted display name. Empty if not yet known.
+    pub room_name: String,
+    /// Room secrets by version, so the watcher can decrypt private message
+    /// bodies natively (Phase 2). Empty for public rooms.
+    pub secrets: std::collections::HashMap<u32, [u8; 32]>,
+    /// Decrypted member nicknames, so the watcher can name the sender
+    /// without re-deriving it from `member_info` + secrets per message.
+    pub nicknames: std::collections::HashMap<river_core::room_state::member::MemberId, String>,
+    /// Read-watermark: max message timestamp (ms since epoch) already
+    /// surfaced. Seeded ONCE on first publish (the room's history baseline),
+    /// then advanced only by a notification — by the watcher
+    /// ([`notif_advance_last_seen`]) or the UI ([`notif_mark_notified`]).
+    /// Both paths notify only for messages strictly newer than this, so the
+    /// two never double-notify (Phase 2 coordination). NOT advanced by
+    /// routine context refreshes, otherwise a refresh landing between a
+    /// message's arrival and the watcher processing it would suppress it.
+    pub last_seen_ms: u64,
+}
+
+/// `None` until first populated; lazily initialised on first write so it
+/// can be a plain `const`-constructible static (`HashMap::new` is not
+/// const). Keyed by the room owner's `MemberId`.
+static NOTIF_CONTEXTS: std::sync::Mutex<
+    Option<std::collections::HashMap<river_core::room_state::member::MemberId, RoomNotifContext>>,
+> = std::sync::Mutex::new(None);
+
+/// Publish (or refresh) the notification context for a room. Called from
+/// the UI wherever it has live `RoomData`.
+///
+/// `baseline_ms` seeds `last_seen_ms` ONLY on the first observation of a
+/// room (its message history at that point). Subsequent calls refresh the
+/// name / secrets / nicknames but leave `last_seen_ms` to the notify
+/// paths — see [`RoomNotifContext::last_seen_ms`]. A no-op in practice
+/// off-Android (the UI only calls this under `cfg(target_os = "android")`),
+/// but defined cross-target so the call site type-checks everywhere.
+pub fn update_notif_context(
+    owner_vk: ed25519_dalek::VerifyingKey,
+    self_member_id: river_core::room_state::member::MemberId,
+    room_name: String,
+    secrets: std::collections::HashMap<u32, [u8; 32]>,
+    nicknames: std::collections::HashMap<river_core::room_state::member::MemberId, String>,
+    baseline_ms: u64,
+) {
+    use river_core::room_state::member::MemberId;
+    let key = MemberId::from(&owner_vk);
+    if let Ok(mut guard) = NOTIF_CONTEXTS.lock() {
+        let map = guard.get_or_insert_with(std::collections::HashMap::new);
+        match map.get_mut(&key) {
+            Some(entry) => {
+                entry.owner_vk = owner_vk;
+                entry.self_member_id = self_member_id;
+                if !room_name.is_empty() {
+                    entry.room_name = room_name;
+                }
+                if !secrets.is_empty() {
+                    entry.secrets = secrets;
+                }
+                if !nicknames.is_empty() {
+                    entry.nicknames = nicknames;
+                }
+                // last_seen_ms intentionally left untouched here.
+            }
+            None => {
+                map.insert(
+                    key,
+                    RoomNotifContext {
+                        owner_vk,
+                        self_member_id,
+                        room_name,
+                        secrets,
+                        nicknames,
+                        last_seen_ms: baseline_ms,
+                    },
+                );
+            }
+        }
+    }
+}
+
+/// Read a room's read-watermark (0 if unknown). The UI's notify path calls
+/// this (keyed by the room owner's verifying key) to skip messages the
+/// background watcher has already surfaced.
+pub fn notif_watermark(owner_vk: &ed25519_dalek::VerifyingKey) -> u64 {
+    use river_core::room_state::member::MemberId;
+    let key = MemberId::from(owner_vk);
+    NOTIF_CONTEXTS
+        .lock()
+        .ok()
+        .and_then(|g| g.as_ref().and_then(|m| m.get(&key).map(|c| c.last_seen_ms)))
+        .unwrap_or(0)
+}
+
+/// Advance a room's read-watermark (monotonic). The UI calls this after it
+/// posts a notification so the watcher won't re-notify the same message
+/// (and vice-versa).
+pub fn notif_mark_notified(owner_vk: &ed25519_dalek::VerifyingKey, ts_ms: u64) {
+    use river_core::room_state::member::MemberId;
+    let key = MemberId::from(owner_vk);
+    if let Ok(mut guard) = NOTIF_CONTEXTS.lock() {
+        if let Some(map) = guard.as_mut() {
+            if let Some(c) = map.get_mut(&key) {
+                c.last_seen_ms = c.last_seen_ms.max(ts_ms);
+            }
+        }
+    }
+}
+
 /// Hardcoded fallback for the embedded Freenet node's storage dir.
 ///
 /// Matches the package id in `ui/Dioxus.toml` (`org.freenet.river`).
@@ -429,6 +553,13 @@ mod android {
         let (tx, shutdown_rx) = oneshot::channel::<()>();
         *SHUTDOWN_TX.lock().expect("SHUTDOWN_TX poisoned") = Some(tx);
 
+        // Bug B (background notifications): a watcher that lives on THIS
+        // runtime — kept alive by the foreground service — subscribes to
+        // the user's rooms over the loopback WS and posts notifications
+        // even while the WebView UI is suspended. Detached; it reconnects
+        // on its own and never blocks node shutdown.
+        tokio::spawn(run_notification_watcher());
+
         info!("Running network node event loop (with foreground-service shutdown hook)");
         tokio::select! {
             res = freenet::run_network_node(node) => {
@@ -439,6 +570,237 @@ mod android {
             }
         }
         Ok(())
+    }
+
+    use river_core::room_state::member::MemberId;
+
+    /// Snapshot every room context the UI has published.
+    fn notif_contexts_snapshot() -> Vec<RoomNotifContext> {
+        super::NOTIF_CONTEXTS
+            .lock()
+            .ok()
+            .and_then(|g| g.as_ref().map(|m| m.values().cloned().collect()))
+            .unwrap_or_default()
+    }
+
+    /// Current `last_seen_ms` for a room (0 if unknown).
+    fn notif_last_seen(room: MemberId) -> u64 {
+        super::NOTIF_CONTEXTS
+            .lock()
+            .ok()
+            .and_then(|g| {
+                g.as_ref()
+                    .and_then(|m| m.get(&room).map(|c| c.last_seen_ms))
+            })
+            .unwrap_or(0)
+    }
+
+    /// Advance a room's `last_seen_ms` (monotonic) so a re-sync of the same
+    /// update doesn't re-notify.
+    fn notif_advance_last_seen(room: MemberId, ts_ms: u64) {
+        if let Ok(mut guard) = super::NOTIF_CONTEXTS.lock() {
+            if let Some(map) = guard.as_mut() {
+                if let Some(c) = map.get_mut(&room) {
+                    c.last_seen_ms = c.last_seen_ms.max(ts_ms);
+                }
+            }
+        }
+    }
+
+    fn systime_ms(t: std::time::SystemTime) -> u64 {
+        t.duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0)
+    }
+
+    /// Pull the freshly-added messages out of an incoming room-state
+    /// update. Mirrors `room_synchronizer`'s delta/full-state handling but
+    /// non-panicking (a malformed payload yields an empty vec, never a
+    /// crash). Phase 1 reads only message metadata (author/time) — which is
+    /// plaintext even in private rooms — so it needs no room secrets.
+    fn extract_new_messages(
+        update: &freenet_stdlib::prelude::UpdateData,
+    ) -> Vec<river_core::room_state::message::AuthorizedMessageV1> {
+        use freenet_stdlib::prelude::UpdateData;
+        use river_core::room_state::{ChatRoomStateV1, ChatRoomStateV1Delta};
+        fn de<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Option<T> {
+            ciborium::de::from_reader(bytes).ok()
+        }
+        match update {
+            UpdateData::Delta(d) => de::<ChatRoomStateV1Delta>(d.as_ref())
+                .and_then(|x| x.recent_messages)
+                .unwrap_or_default(),
+            UpdateData::State(s) => de::<ChatRoomStateV1>(s.as_ref())
+                .map(|x| x.recent_messages.messages)
+                .unwrap_or_default(),
+            UpdateData::StateAndDelta { delta, .. } => de::<ChatRoomStateV1Delta>(delta.as_ref())
+                .and_then(|x| x.recent_messages)
+                .unwrap_or_default(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Decide whether an incoming update warrants a notification and, if so,
+    /// post it. Advances `last_seen` regardless so the same message can't
+    /// re-notify on a state re-sync.
+    fn handle_room_update(room: MemberId, update: &freenet_stdlib::prelude::UpdateData) {
+        let msgs = extract_new_messages(update);
+        if msgs.is_empty() {
+            return;
+        }
+        let Some(ctx) = super::NOTIF_CONTEXTS
+            .lock()
+            .ok()
+            .and_then(|g| g.as_ref().and_then(|m| m.get(&room).cloned()))
+        else {
+            return;
+        };
+        let last_seen = notif_last_seen(room);
+        let mut max_ts = last_seen;
+        let mut count = 0u32;
+        let mut latest: Option<&river_core::room_state::message::AuthorizedMessageV1> = None;
+        for m in &msgs {
+            if m.message.author == ctx.self_member_id {
+                continue;
+            }
+            let ts = systime_ms(m.message.time);
+            if ts > last_seen {
+                count += 1;
+                if ts >= max_ts {
+                    max_ts = ts;
+                    latest = Some(m);
+                }
+            }
+        }
+        if count == 0 {
+            return;
+        }
+        notif_advance_last_seen(room, max_ts);
+
+        // When the UI is in the foreground it owns notifications (and runs
+        // its own current-room suppression). The watcher only fires while
+        // backgrounded — where the UI is suspended and would otherwise
+        // never notify.
+        if super::android_is_foreground() {
+            return;
+        }
+        let title = if ctx.room_name.is_empty() {
+            "River".to_string()
+        } else {
+            ctx.room_name.clone()
+        };
+        // Phase 2: decrypt the body natively so the watcher's notification
+        // matches the UI's "sender: preview" (reusing the UI's preview
+        // decoder + the context's decrypted nicknames). For a batch, mirror
+        // the UI and show a count instead.
+        let body = if count == 1 {
+            match latest {
+                Some(m) => {
+                    let preview = crate::components::app::notifications::get_message_preview(
+                        &m.message.content,
+                        &ctx.secrets,
+                    );
+                    let sender = ctx
+                        .nicknames
+                        .get(&m.message.author)
+                        .cloned()
+                        .unwrap_or_else(|| "Someone".to_string());
+                    format!("{sender}: {preview}")
+                }
+                None => "New message".to_string(),
+            }
+        } else {
+            format!("{count} new messages")
+        };
+        info!("notif watcher: posting background notification for room {room} ({count} new)");
+        post_message_notification(&title, &body, &room.to_string());
+    }
+
+    /// Background notification watcher (Bug B). Runs on the node's tokio
+    /// runtime (kept alive by the foreground service), connects to the
+    /// embedded node's loopback WS as a second client, subscribes to every
+    /// room the UI has published a context for, and posts a notification
+    /// when a message from another member arrives — even while the WebView
+    /// UI is suspended.
+    ///
+    /// Phase 1: posts a coarse "N new messages" with the UI-decrypted room
+    /// name; it does not decrypt message bodies (deferred to Phase 2). It
+    /// only fires while backgrounded (`!android_is_foreground()`) so the UI
+    /// owns notifications whenever it's alive. Fully fail-safe: every error
+    /// is logged and the loop reconnects; it never panics and never blocks
+    /// node shutdown.
+    ///
+    /// See `openspec/changes/android-bundled-node/design-background-notifications.md`.
+    async fn run_notification_watcher() {
+        use freenet_stdlib::client_api::{
+            ClientRequest, ContractRequest, ContractResponse, HostResponse, WebApi,
+        };
+        // `ContractInstanceId` is already imported at module scope.
+        use std::collections::{HashMap, HashSet};
+        use std::time::Duration;
+
+        loop {
+            let Some(token) = super::EMBEDDED_AUTH_TOKEN.get().cloned() else {
+                tokio::time::sleep(Duration::from_secs(2)).await;
+                continue;
+            };
+            let url = format!(
+                "ws://127.0.0.1:7509/v1/contract/command?encodingProtocol=native&authToken={token}"
+            );
+            let stream = match tokio_tungstenite::connect_async(&url).await {
+                Ok((s, _)) => s,
+                Err(e) => {
+                    warn!("notif watcher: connect failed ({e}); retrying in 5s");
+                    tokio::time::sleep(Duration::from_secs(5)).await;
+                    continue;
+                }
+            };
+            info!("notif watcher: connected to embedded node WS");
+            let mut api = WebApi::start(stream);
+            let mut subscribed: HashSet<ContractInstanceId> = HashSet::new();
+            let mut id_to_room: HashMap<ContractInstanceId, MemberId> = HashMap::new();
+
+            let _disconnected: bool = 'conn: loop {
+                // Reconcile subscriptions: subscribe to any room the UI has
+                // published a context for that we're not yet watching.
+                for ctx in notif_contexts_snapshot() {
+                    let iid = *crate::util::owner_vk_to_contract_key(&ctx.owner_vk).id();
+                    let room = MemberId::from(&ctx.owner_vk);
+                    id_to_room.insert(iid, room);
+                    if subscribed.insert(iid) {
+                        let req = ClientRequest::ContractOp(ContractRequest::Subscribe {
+                            key: iid,
+                            summary: None,
+                        });
+                        if let Err(e) = api.send(req).await {
+                            warn!("notif watcher: subscribe send failed ({e}); reconnecting");
+                            break 'conn true;
+                        }
+                        info!("notif watcher: subscribed to room {room}");
+                    }
+                }
+
+                // Block on the next response, but wake every 5s to reconcile
+                // subscriptions for rooms the UI added after we connected.
+                match tokio::time::timeout(Duration::from_secs(5), api.recv()).await {
+                    Err(_elapsed) => continue,
+                    Ok(Err(e)) => {
+                        warn!("notif watcher: recv error ({e}); reconnecting");
+                        break 'conn true;
+                    }
+                    Ok(Ok(HostResponse::ContractResponse(
+                        ContractResponse::UpdateNotification { key, update },
+                    ))) => {
+                        if let Some(room) = id_to_room.get(&*key.id()).copied() {
+                            handle_room_update(room, &update);
+                        }
+                    }
+                    Ok(Ok(_)) => {}
+                }
+            };
+            // Disconnected — pause briefly, then the outer loop reconnects.
+            tokio::time::sleep(Duration::from_secs(3)).await;
+        }
     }
 
     /// Post (or update) a "new message" Android notification by calling
@@ -460,7 +822,7 @@ mod android {
     /// and returns rather than panicking, so a JNI hiccup never
     /// crashes the node runtime.
     pub fn post_message_notification(title: &str, body: &str, tag: &str) {
-        use jni::objects::{JObject, JValue};
+        use jni::objects::{JClass, JObject, JValue};
         use jni::JavaVM;
 
         let ctx = ndk_context::android_context();
@@ -481,41 +843,59 @@ mod android {
             }
         };
 
-        let title_j = match env.new_string(title) {
-            Ok(s) => s,
-            Err(e) => {
-                warn!("post_message_notification: new_string(title) failed: {e}");
-                return;
-            }
-        };
-        let body_j = match env.new_string(body) {
-            Ok(s) => s,
-            Err(e) => {
-                warn!("post_message_notification: new_string(body) failed: {e}");
-                return;
-            }
-        };
-        let tag_j = match env.new_string(tag) {
-            Ok(s) => s,
-            Err(e) => {
-                warn!("post_message_notification: new_string(tag) failed: {e}");
-                return;
-            }
+        // All the JNI work is wrapped in a single fallible closure so any
+        // error logs once and clears the pending Java exception below.
+        //
+        // CRITICAL: we must resolve `RiverNodeService` through the Activity's
+        // own ClassLoader, NOT via the bare class name. `call_static_method`
+        // with a class-name string resolves it via JNI `FindClass`, and on a
+        // thread attached with `attach_current_thread()` (this runs on a tokio
+        // worker driving the synchronizer — a pure native thread with no Java
+        // frames) `FindClass` resolves against the SYSTEM classloader, which
+        // cannot see app classes. The bare lookup therefore throws
+        // `NoClassDefFoundError` and the notification is silently dropped.
+        // Going through `activity.getClassLoader().loadClass(...)` uses the
+        // app classloader, which does know about `RiverNodeService`.
+        let post = |env: &mut jni::JNIEnv| -> Result<(), jni::errors::Error> {
+            let loader = env
+                .call_method(
+                    &activity,
+                    "getClassLoader",
+                    "()Ljava/lang/ClassLoader;",
+                    &[],
+                )?
+                .l()?;
+            let class_name = env.new_string("dev.dioxus.main.RiverNodeService")?;
+            let service_class: JClass = env
+                .call_method(
+                    &loader,
+                    "loadClass",
+                    "(Ljava/lang/String;)Ljava/lang/Class;",
+                    &[JValue::Object(&class_name)],
+                )?
+                .l()?
+                .into();
+
+            let title_j = env.new_string(title)?;
+            let body_j = env.new_string(body)?;
+            let tag_j = env.new_string(tag)?;
+
+            env.call_static_method(
+                &service_class,
+                "postMessageNotification",
+                "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                &[
+                    JValue::Object(&activity),
+                    JValue::Object(&title_j),
+                    JValue::Object(&body_j),
+                    JValue::Object(&tag_j),
+                ],
+            )?;
+            Ok(())
         };
 
-        let call_result = env.call_static_method(
-            "dev/dioxus/main/RiverNodeService",
-            "postMessageNotification",
-            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-            &[
-                JValue::Object(&activity),
-                JValue::Object(&title_j),
-                JValue::Object(&body_j),
-                JValue::Object(&tag_j),
-            ],
-        );
-        if let Err(e) = call_result {
-            warn!("post_message_notification: call_static_method failed: {e}");
+        if let Err(e) = post(&mut env) {
+            warn!("post_message_notification: JNI post failed: {e}");
             // Clear any pending Java exception so the next JNI use isn't
             // poisoned. exception_clear is itself best-effort.
             let _ = env.exception_clear();
