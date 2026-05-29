@@ -1,0 +1,83 @@
+Test Android notifications on the debug build. Look at the /opsx:apply to see where we're at.
+
+---
+
+I've swapped back to the test phone. Here's the rooms public key.
+
+REDACTED
+
+---
+
+Here's the invite link 
+
+http://127.0.0.1:7509/v1/contract/web/REDACTED/?REDACTED
+
+You'll need to use the device UI skill to redeem it
+
+---
+
+the inviting phone is online and reachaabel again
+
+---
+
+sent
+
+---
+
+sent
+
+---
+
+sent
+
+---
+
+I'm about to go to sleep, so do 2 and then have 1 ready for me to test when I wake up. Or you could spin up a web server and test it yourself with playwright.
+
+---
+
+I've posted again
+
+---
+
+I think the phone updated its OS version at 2am
+
+---
+
+The room should be saved to storage. After we figure out the notifications, please fix that. Re-drive the invite redemption now.
+
+---
+
+You're all clear to do it
+
+---
+
+it's unlocked. Just launch the app again and give it another go.
+
+---
+
+sent
+
+---
+
+sent
+
+---
+
+The rooms take a minute to appear but I haven't seen one disappear recently.
+
+Please commit and push the changes then /goal complete Bug B Phase 2.
+
+---
+
+hold off on commiting for now
+
+---
+
+<task-notification>
+<task-id>bkclzpxgm</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-sal-Developer-river/e615276a-7404-440d-8aa6-f8df28f1617b/tasks/bkclzpxgm.output</output-file>
+<status>completed</status>
+<summary>Background command "Build Phase 2 debug APK (background)" completed (exit code 0)</summary>
+</task-notification>

@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "a49b622769eb",
+  "strategy": "manual-commit",
+  "branch": "salvatoret/android",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "openspec/changes/android-bundled-node/design-background-notifications.md",
+    "ui/src/components/app.rs",
+    "ui/src/components/app/notifications.rs",
+    "ui/src/node_runtime.rs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a4/9b622769eb/0/metadata.json",
+      "transcript": "/a4/9b622769eb/0/full.jsonl",
+      "content_hash": "/a4/9b622769eb/0/content_hash.txt",
+      "prompt": "/a4/9b622769eb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 27299,
+    "cache_creation_tokens": 914820,
+    "cache_read_tokens": 67448989,
+    "output_tokens": 285164,
+    "api_call_count": 222
+  }
+}
