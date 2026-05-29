@@ -19,7 +19,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="0.2.64"
+VERSION="0.2.67"
 DEST="$REPO_ROOT/vendor/freenet"
 
 if [ -d "$DEST" ]; then
@@ -31,7 +31,10 @@ echo "Downloading freenet $VERSION crate from crates.io …"
 mkdir -p "$REPO_ROOT/vendor"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-curl -sL "https://crates.io/api/v1/crates/freenet/$VERSION/download" \
+# crates.io now rejects requests without a User-Agent (returns an error
+# body instead of the tarball), so set one explicitly.
+curl -sL -H "User-Agent: river-vendor-freenet" \
+    "https://crates.io/api/v1/crates/freenet/$VERSION/download" \
     | tar -xz -C "$tmp"
 mv "$tmp/freenet-$VERSION" "$DEST"
 
