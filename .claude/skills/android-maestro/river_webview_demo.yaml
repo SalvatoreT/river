@@ -1,0 +1,51 @@
+appId: org.freenet.river.debug
+---
+# River Android — WebView interaction demo.
+# Every step is driven through maestro's accessibility view of the
+# wry/Android WebView. The Dioxus UI exposes its DOM text to a11y, so we
+# tap rooms, buttons and inputs by their on-screen text.
+#
+# Note: the hamburger is an icon-only Button with no a11y text, so it is
+# tapped by point. Its position differs by view:
+#   - welcome screen header:      ~(4%, 5%)
+#   - room conversation header:   ~(7%, 9%)
+
+# --- 1. Cold launch: wait for the WebView to paint the welcome screen ---
+- launchApp:
+    clearState: false
+- assertVisible: "Welcome to River"
+- takeScreenshot: /tmp/claude/demo_1_welcome
+
+# --- 2. Open the hamburger room drawer ---
+- tapOn:
+    point: "4%,5%"
+- assertVisible: "ROOMS"
+- takeScreenshot: /tmp/claude/demo_2_rooms
+
+# --- 3. Open a public room and read its message history ---
+# Unread counts are appended to the label and change live, so match a prefix.
+- tapOn:
+    text: ".*Public Discussion Room.*"
+- extendedWaitUntil:
+    visible: "Copy"
+    timeout: 8000
+- takeScreenshot: /tmp/claude/demo_3_public_room
+
+# --- 4. Re-open the drawer from the conversation header, open the room we own ---
+- tapOn:
+    point: "7%,9%"
+- assertVisible: "ROOMS"
+- tapOn:
+    text: ".*Your Private Room.*"
+- extendedWaitUntil:
+    visible: "Send"
+    timeout: 8000
+- takeScreenshot: /tmp/claude/demo_4_private_room
+
+# --- 5. Type into the WebView composer and send ---
+- tapOn: "Type your message..."
+- inputText: "Hello from maestro driving the River WebView!"
+- takeScreenshot: /tmp/claude/demo_5_typed
+- tapOn: "Send"
+- assertVisible: "Hello from maestro driving the River WebView!"
+- takeScreenshot: /tmp/claude/demo_6_sent
