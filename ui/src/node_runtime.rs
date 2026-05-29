@@ -213,6 +213,74 @@ pub fn notif_mark_notified(owner_vk: &ed25519_dalek::VerifyingKey, ts_ms: u64) {
     }
 }
 
+/// Milliseconds since the Unix epoch for a `SystemTime` (0 if before epoch).
+#[cfg(any(target_os = "android", test))]
+fn systime_ms(t: std::time::SystemTime) -> u64 {
+    t.duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
+}
+
+/// Pure decision + body composition for a background notification (Bug B
+/// Phase 2). Given the freshly-added messages in a room update and the
+/// room's notification context, decide whether to notify and render the
+/// body EXACTLY as the watcher will post it: `Some((body, max_ts))` or
+/// `None` if nothing qualifies. `max_ts` is the newest qualifying message
+/// timestamp, used to advance the read-watermark.
+///
+/// Cross-target and JNI-free so it is unit-tested on the host. Mirrors the
+/// UI's `notify_new_messages`: drops self-authored messages and any with
+/// timestamp `<= last_seen_ms`, decrypts a single message's body via the
+/// UI's shared `get_message_preview`, and falls back to "N new messages"
+/// for a batch.
+#[cfg(any(target_os = "android", test))]
+fn compose_notification(
+    msgs: &[river_core::room_state::message::AuthorizedMessageV1],
+    self_member_id: river_core::room_state::member::MemberId,
+    secrets: &std::collections::HashMap<u32, [u8; 32]>,
+    nicknames: &std::collections::HashMap<river_core::room_state::member::MemberId, String>,
+    last_seen_ms: u64,
+) -> Option<(String, u64)> {
+    let mut max_ts = last_seen_ms;
+    let mut count = 0u32;
+    let mut latest: Option<&river_core::room_state::message::AuthorizedMessageV1> = None;
+    for m in msgs {
+        if m.message.author == self_member_id {
+            continue;
+        }
+        let ts = systime_ms(m.message.time);
+        if ts > last_seen_ms {
+            count += 1;
+            if ts >= max_ts {
+                max_ts = ts;
+                latest = Some(m);
+            }
+        }
+    }
+    if count == 0 {
+        return None;
+    }
+    let body = if count == 1 {
+        match latest {
+            Some(m) => {
+                let preview = crate::components::app::notifications::get_message_preview(
+                    &m.message.content,
+                    secrets,
+                );
+                let sender = nicknames
+                    .get(&m.message.author)
+                    .cloned()
+                    .unwrap_or_else(|| "Someone".to_string());
+                format!("{sender}: {preview}")
+            }
+            None => "New message".to_string(),
+        }
+    } else {
+        format!("{count} new messages")
+    };
+    Some((body, max_ts))
+}
+
 /// Hardcoded fallback for the embedded Freenet node's storage dir.
 ///
 /// Matches the package id in `ui/Dioxus.toml` (`org.freenet.river`).
@@ -607,12 +675,6 @@ mod android {
         }
     }
 
-    fn systime_ms(t: std::time::SystemTime) -> u64 {
-        t.duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(0)
-    }
-
     /// Pull the freshly-added messages out of an incoming room-state
     /// update. Mirrors `room_synchronizer`'s delta/full-state handling but
     /// non-panicking (a malformed payload yields an empty vec, never a
@@ -656,25 +718,21 @@ mod android {
             return;
         };
         let last_seen = notif_last_seen(room);
-        let mut max_ts = last_seen;
-        let mut count = 0u32;
-        let mut latest: Option<&river_core::room_state::message::AuthorizedMessageV1> = None;
-        for m in &msgs {
-            if m.message.author == ctx.self_member_id {
-                continue;
-            }
-            let ts = systime_ms(m.message.time);
-            if ts > last_seen {
-                count += 1;
-                if ts >= max_ts {
-                    max_ts = ts;
-                    latest = Some(m);
-                }
-            }
-        }
-        if count == 0 {
+        // Phase 2: the decide + decrypt + render step is the cross-target,
+        // unit-tested `compose_notification` (reuses the UI's preview decoder
+        // and the context's decrypted nicknames), so the watcher posts the
+        // same "sender: preview" the UI would.
+        let Some((body, max_ts)) = super::compose_notification(
+            &msgs,
+            ctx.self_member_id,
+            &ctx.secrets,
+            &ctx.nicknames,
+            last_seen,
+        ) else {
             return;
-        }
+        };
+        // Advance the watermark even when foregrounded so neither path
+        // re-notifies these messages (the UI reads the same watermark).
         notif_advance_last_seen(room, max_ts);
 
         // When the UI is in the foreground it owns notifications (and runs
@@ -689,30 +747,9 @@ mod android {
         } else {
             ctx.room_name.clone()
         };
-        // Phase 2: decrypt the body natively so the watcher's notification
-        // matches the UI's "sender: preview" (reusing the UI's preview
-        // decoder + the context's decrypted nicknames). For a batch, mirror
-        // the UI and show a count instead.
-        let body = if count == 1 {
-            match latest {
-                Some(m) => {
-                    let preview = crate::components::app::notifications::get_message_preview(
-                        &m.message.content,
-                        &ctx.secrets,
-                    );
-                    let sender = ctx
-                        .nicknames
-                        .get(&m.message.author)
-                        .cloned()
-                        .unwrap_or_else(|| "Someone".to_string());
-                    format!("{sender}: {preview}")
-                }
-                None => "New message".to_string(),
-            }
-        } else {
-            format!("{count} new messages")
-        };
-        info!("notif watcher: posting background notification for room {room} ({count} new)");
+        // Log the composed body so an on-device backgrounded send shows
+        // exactly what the watcher rendered, independent of the UI path.
+        info!("notif watcher: posting background notification for room {room} body={body:?}");
         post_message_notification(&title, &body, &room.to_string());
     }
 
@@ -1082,5 +1119,126 @@ mod tests {
         assert!(android_files_dir().is_none(), "host stub must return None");
         let dir = resolve_data_dir();
         assert_eq!(dir, PathBuf::from(FREENET_DATA_DIR_FALLBACK));
+    }
+
+    // ---- Bug B Phase 2: compose_notification (decrypt + render + dedup) ----
+
+    use river_core::room_state::member::MemberId;
+    use river_core::room_state::message::{AuthorizedMessageV1, MessageV1, RoomMessageBody};
+    use std::collections::HashMap;
+    use std::time::{Duration, UNIX_EPOCH};
+
+    fn test_member(seed: u8) -> MemberId {
+        let sk = ed25519_dalek::SigningKey::from_bytes(&[seed; 32]);
+        MemberId::from(&sk.verifying_key())
+    }
+
+    fn test_msg(author: MemberId, ts_ms: u64, content: RoomMessageBody) -> AuthorizedMessageV1 {
+        AuthorizedMessageV1 {
+            message: MessageV1 {
+                room_owner: test_member(0),
+                author,
+                time: UNIX_EPOCH + Duration::from_millis(ts_ms),
+                content,
+            },
+            // compose_notification never inspects the signature.
+            signature: ed25519_dalek::Signature::from_bytes(&[0u8; 64]),
+        }
+    }
+
+    #[test]
+    fn compose_renders_sender_and_public_preview() {
+        let me = test_member(1);
+        let alice = test_member(2);
+        let mut nicks = HashMap::new();
+        nicks.insert(alice, "Alice".to_string());
+        let msgs = vec![test_msg(
+            alice,
+            100,
+            RoomMessageBody::public("hello".to_string()),
+        )];
+        let (body, max_ts) =
+            compose_notification(&msgs, me, &HashMap::new(), &nicks, 0).expect("should notify");
+        assert_eq!(body, "Alice: hello");
+        assert_eq!(max_ts, 100);
+    }
+
+    #[test]
+    fn compose_decrypts_private_body_natively() {
+        use river_core::ecies::encrypt_with_symmetric_key;
+        use river_core::room_state::content::{
+            TextContentV1, CONTENT_TYPE_TEXT, TEXT_CONTENT_VERSION,
+        };
+        let me = test_member(1);
+        let bob = test_member(3);
+        let secret = [7u8; 32];
+        let (ciphertext, nonce) = encrypt_with_symmetric_key(
+            &secret,
+            &TextContentV1::new("top secret".to_string()).encode(),
+        );
+        let content = RoomMessageBody::Private {
+            content_type: CONTENT_TYPE_TEXT,
+            content_version: TEXT_CONTENT_VERSION,
+            ciphertext,
+            nonce,
+            secret_version: 5,
+        };
+        let mut secrets = HashMap::new();
+        secrets.insert(5u32, secret);
+        let mut nicks = HashMap::new();
+        nicks.insert(bob, "Bob".to_string());
+        let msgs = vec![test_msg(bob, 200, content)];
+        let (body, max_ts) =
+            compose_notification(&msgs, me, &secrets, &nicks, 0).expect("should notify");
+        assert_eq!(body, "Bob: top secret");
+        assert_eq!(max_ts, 200);
+    }
+
+    #[test]
+    fn compose_skips_self_watermarked_and_batches() {
+        let me = test_member(1);
+        let alice = test_member(2);
+        let mut nicks = HashMap::new();
+        nicks.insert(alice, "Alice".to_string());
+
+        // Only a self-authored message → nothing to notify.
+        let only_self = vec![test_msg(
+            me,
+            100,
+            RoomMessageBody::public("mine".to_string()),
+        )];
+        assert!(compose_notification(&only_self, me, &HashMap::new(), &nicks, 0).is_none());
+
+        // All at/below the watermark → already surfaced, nothing new.
+        let old = vec![test_msg(
+            alice,
+            50,
+            RoomMessageBody::public("old".to_string()),
+        )];
+        assert!(compose_notification(&old, me, &HashMap::new(), &nicks, 50).is_none());
+
+        // Two new messages from others → batch summary, watermark to newest.
+        let batch = vec![
+            test_msg(alice, 100, RoomMessageBody::public("a".to_string())),
+            test_msg(alice, 110, RoomMessageBody::public("b".to_string())),
+        ];
+        let (body, max_ts) =
+            compose_notification(&batch, me, &HashMap::new(), &nicks, 0).expect("should notify");
+        assert_eq!(body, "2 new messages");
+        assert_eq!(max_ts, 110);
+    }
+
+    #[test]
+    fn compose_unknown_sender_falls_back_to_someone() {
+        let me = test_member(1);
+        let stranger = test_member(9);
+        let msgs = vec![test_msg(
+            stranger,
+            100,
+            RoomMessageBody::public("hi".to_string()),
+        )];
+        let (body, _) = compose_notification(&msgs, me, &HashMap::new(), &HashMap::new(), 0)
+            .expect("should notify");
+        assert_eq!(body, "Someone: hi");
     }
 }
